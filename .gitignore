@@ -1,0 +1,4 @@
+Quaternion.cpp
+build
+*.pyd
+*.so
