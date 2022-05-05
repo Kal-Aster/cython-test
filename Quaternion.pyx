@@ -178,6 +178,30 @@ cdef class Vec3:
         if self._ptr != NULL:
             del self._ptr
 
+    @property
+    def x(self):
+        return self._ptr.x
+    
+    @x.setter
+    def x(self, float x):
+        self._ptr.x = x
+
+    @property
+    def y(self):
+        return self._ptr.y
+    
+    @y.setter
+    def y(self, float y):
+        self._ptr.y = y
+
+    @property
+    def z(self):
+        return self._ptr.z
+    
+    @z.setter
+    def z(self, float z):
+        self._ptr.z = z
+
 cdef class Quaternion:
     cdef CQuaternion *_ptr
     
