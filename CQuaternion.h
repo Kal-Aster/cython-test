@@ -13,29 +13,19 @@ class CQuaternion
 
     float w, x, y, z;
 
-    CQuaternion* clone() const;
+    CQuaternion* clone(CQuaternion* ptr) const;
 
     CQuaternion* conjugate();
-    static CQuaternion* conjugate(
-      const CQuaternion* q
-    );
 
     float dot(
       const CQuaternion* other
     ) const;
-    static float dot(
-      const CQuaternion* q1,
-      const CQuaternion* q2
-    );
 
     // exp() not implemented
 
     CQuaternion* reset(); // to identity
 
     CQuaternion* inverse();
-    static CQuaternion* inverse(
-      const CQuaternion* q
-    );
 
     bool isIdentity() const;
 
@@ -48,15 +38,8 @@ class CQuaternion
     CQuaternion* multiply(
       const CQuaternion* other
     );
-    static CQuaternion* multiply(
-      const CQuaternion* q1,
-      const CQuaternion* q2
-    );
 
     CQuaternion* normalize();
-    static CQuaternion* normalize(
-      const CQuaternion* q
-    );
 
     CQuaternion* fromRotationAxis(
       const CVec3* axis,
@@ -74,6 +57,7 @@ class CQuaternion
     );
 
     static CQuaternion* slerp(
+      CQuaternion* ptr,
       const CQuaternion* q1,
       const CQuaternion* q2,
       float t
@@ -87,10 +71,6 @@ class CQuaternion
     CQuaternion* scale(
       float s
     );
-    static CQuaternion* scale(
-      const CQuaternion* q,
-      float s
-    );
 
     CQuaternion* assign(
       const CQuaternion* other
@@ -98,10 +78,6 @@ class CQuaternion
 
     CQuaternion* add(
       const CQuaternion* other
-    );
-    static CQuaternion* add(
-      const CQuaternion* q1,
-      const CQuaternion* q2
     );
 
     CQuaternion* fromRotationBetweenVec3(
@@ -111,12 +87,9 @@ class CQuaternion
     );
 
     CVec3* multiplyVec3(
+      CVec3* ptr,
       const CVec3* v
     ) const;
-    static CVec3* multiplyVec3(
-      const CQuaternion* q,
-      const CVec3* v
-    );
 }; // class CQuaternion
 
 #endif

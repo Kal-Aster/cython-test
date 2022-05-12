@@ -1,6 +1,8 @@
 # distutils: language = c++
 # distutils: sources = CQuaternion.cpp
 
+from libc.stdlib cimport malloc, free
+
 cdef extern from "CVec3.h":
     cdef cppclass CVec3:
         CVec3(
@@ -26,30 +28,17 @@ cdef extern from "CQuaternion.h":
         )
         float w, x, y, z
         
-        CQuaternion* clone() const
+        CQuaternion* clone(CQuaternion* ptr) const
         
         CQuaternion* conjugate()
-        @staticmethod
-        CQuaternion* conjugate(
-            const CQuaternion* q
-        )
 
         float dot(
             const CQuaternion* other
         ) const
-        @staticmethod
-        float dot(
-            const CQuaternion* q1,
-            const CQuaternion* q2
-        )
 
         CQuaternion* reset()
 
         CQuaternion* inverse()
-        @staticmethod
-        CQuaternion* inverse(
-            const CQuaternion* q
-        )
 
         bint isIdentity() const
 
@@ -60,17 +49,8 @@ cdef extern from "CQuaternion.h":
         CQuaternion* multiply(
             const CQuaternion* other
         )
-        @staticmethod
-        CQuaternion* multiply(
-            const CQuaternion* q1,
-            const CQuaternion* q2
-        )
 
         CQuaternion* normalize()
-        @staticmethod
-        CQuaternion* normalize(
-            const CQuaternion* q
-        )
 
         CQuaternion* fromRotationAxis(
         const CVec3* axis,
@@ -89,6 +69,7 @@ cdef extern from "CQuaternion.h":
 
         @staticmethod
         CQuaternion* slerp(
+            CQuaternion* ptr,
             const CQuaternion* q1,
             const CQuaternion* q2,
             float t
@@ -102,11 +83,6 @@ cdef extern from "CQuaternion.h":
         CQuaternion* scale(
             float s
         )
-        @staticmethod
-        CQuaternion* scale(
-            const CQuaternion* q,
-            float s
-        )
 
         CQuaternion* assign(
             const CQuaternion* other
@@ -114,11 +90,6 @@ cdef extern from "CQuaternion.h":
 
         CQuaternion* add(
             const CQuaternion* other
-        )
-        @staticmethod
-        CQuaternion* add(
-            const CQuaternion* q1,
-            const CQuaternion* q2
         )
 
         CQuaternion* fromRotationBetweenVec3(
@@ -128,13 +99,9 @@ cdef extern from "CQuaternion.h":
         )
 
         CVec3* multiplyVec3(
+            CVec3* ptr,
             const CVec3* v
         ) const
-        @staticmethod
-        CVec3* multiplyVec3(
-            const CQuaternion* q,
-            const CVec3* v
-        )
 
 cdef class Mat3:
     cdef CMat3 *_ptr
@@ -258,7 +225,9 @@ cdef class Quaternion:
         self._ptr.z = z
     
     def clone(self):
-        cdef CQuaternion* ptr = self._ptr.clone()
+        cdef CQuaternion* ptr = self._ptr.clone(
+            <CQuaternion*> malloc(sizeof(CQuaternion))
+        )
         return Quaternion.from_ptr(ptr)
     
     def conjugate(self):
@@ -320,6 +289,7 @@ cdef class Quaternion:
         float t
     ):
         cdef CQuaternion* result = CQuaternion.slerp(
+            <CQuaternion*> malloc(sizeof(CQuaternion)),
             q1._ptr, q2._ptr, t
         )
         return Quaternion.from_ptr(result)
@@ -351,6 +321,6 @@ cdef class Quaternion:
     
     def multiplyVec3(self, Vec3 vec):
         cdef CVec3* result = self._ptr.multiplyVec3(
-            vec._ptr
+            <CVec3*> malloc(sizeof(CVec3)), vec._ptr
         )
         return Vec3.from_ptr(result)

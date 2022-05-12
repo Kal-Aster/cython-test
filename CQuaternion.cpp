@@ -14,10 +14,13 @@ CQuaternion::CQuaternion(
 ): w(_w), x(_x), y(_y), z(_z)
 {};
 
-CQuaternion* CQuaternion::clone() const {
-  return new CQuaternion(
-    this->w, this->x, this->y, this->z
-  );
+CQuaternion* CQuaternion::clone(CQuaternion* ptr) const {
+  ptr->w = this->w;
+  ptr->x = this->x;
+  ptr->y = this->y;
+  ptr->z = this->z;
+
+  return ptr;
 }
 
 CQuaternion* CQuaternion::conjugate() {
@@ -27,11 +30,6 @@ CQuaternion* CQuaternion::conjugate() {
   this->z = -this->z;
   
   return this;
-}
-CQuaternion* CQuaternion::conjugate(
-  const CQuaternion* q
-) {
-  return q->clone()->conjugate();
 }
 
 float CQuaternion::dot(
@@ -43,12 +41,6 @@ float CQuaternion::dot(
     this->y * other->y +
     this->z * other->z
   );
-}
-float CQuaternion::dot(
-  const CQuaternion* q1,
-  const CQuaternion* q2
-) {
-  return q1->dot(q2);
 }
 
 CQuaternion* CQuaternion::reset() {
@@ -72,11 +64,6 @@ CQuaternion* CQuaternion::inverse() {
   }
 
   return this->conjugate()->scale(1.0f / l);
-}
-CQuaternion* CQuaternion::inverse(
-  const CQuaternion* q
-) {
-  return q->clone()->inverse();
 }
 
 bool CQuaternion::isIdentity() const {
@@ -138,12 +125,6 @@ CQuaternion* CQuaternion::multiply(
 
   return this;
 }
-CQuaternion* CQuaternion::multiply(
-  const CQuaternion* q1,
-  const CQuaternion* q2
-) {
-  return q1->clone()->multiply(q2);
-}
 
 CQuaternion* CQuaternion::normalize() {
   float length = this->length();
@@ -151,11 +132,6 @@ CQuaternion* CQuaternion::normalize() {
   this->scale(1.0f / length);
   
   return this;
-}
-CQuaternion* CQuaternion::normalize(
-  const CQuaternion* q
-) {
-  return q->clone()->normalize();
 }
 
 CQuaternion* CQuaternion::fromRotationAxis(
@@ -284,6 +260,7 @@ CQuaternion* CQuaternion::fromYawPitchRoll(
 }
 
 CQuaternion* CQuaternion::slerp(
+  CQuaternion* ptr,
   const CQuaternion* q1,
   const CQuaternion* q2,
   float t
@@ -294,9 +271,12 @@ CQuaternion* CQuaternion::slerp(
     q1->y == q2->y &&
     q1->z == q2->z
   ) {
-    return new CQuaternion(
-      q1->w, q1->x, q1->y, q1->z
-    );
+    ptr->w = q1->w;
+    ptr->x = q1->x;
+    ptr->y = q1->y;
+    ptr->z = q1->z;
+
+    return ptr;
   }
 
   float ct = q1->dot(q2);
@@ -306,14 +286,13 @@ CQuaternion* CQuaternion::slerp(
   float stt = sin(t * theta) / st;
   float somt = sin((1.0f - t) * theta) / st;
 
-  CQuaternion* temp1 = q1->clone()->scale(somt);
-  CQuaternion* temp2 = q2->clone()->scale(stt);
-  
-  CQuaternion *result = CQuaternion::add(temp1, temp2);
+  CQuaternion* tmp = q2->clone(new CQuaternion)->scale(stt);
 
-  delete temp1, temp2;
+  q1->clone(ptr)->scale(somt)->add(tmp);
 
-  return result;
+  delete tmp;
+
+  return ptr;
 }
 
 void CQuaternion::toAxisAngle(
@@ -360,12 +339,6 @@ CQuaternion* CQuaternion::scale(
 
   return this;
 }
-CQuaternion* CQuaternion::scale(
-  const CQuaternion* q,
-  float s
-) {
-  return q->clone()->scale(s);
-}
 
 CQuaternion* CQuaternion::assign(
   const CQuaternion* other
@@ -385,20 +358,14 @@ CQuaternion* CQuaternion::add(
 
   return this;
 }
-CQuaternion* CQuaternion::add(
-  const CQuaternion* q1,
-  const CQuaternion* q2
-) {
-  return q1->clone()->add(q2);
-}
 
 CQuaternion* CQuaternion::fromRotationBetweenVec3(
   const CVec3* vec1,
   const CVec3* vec2,
   const CVec3* fallback
 ) {
-  CVec3* v1 = vec1->clone()->normalize();
-  CVec3* v2 = vec2->clone()->normalize();
+  CVec3* v1 = vec1->clone(new CVec3)->normalize();
+  CVec3* v2 = vec2->clone(new CVec3)->normalize();
   float a = v1->dot(v2);
 
   if (a >= 1.0) {
@@ -414,10 +381,7 @@ CQuaternion* CQuaternion::fromRotationBetweenVec3(
       return this->fromRotationAxis(fallback, float(M_PI));
     }
 
-    CVec3* tmp = new CVec3(1.0, 0.0, 0.0);
-    CVec3* axis = CVec3::cross(tmp, vec1);
-
-    delete tmp;
+    CVec3* axis = (new CVec3(1.0, 0.0, 0.0))->cross(vec1);
 
     //If axis is zero
     if (abs(axis->lengthSquared()) < epsilon) {
@@ -440,7 +404,7 @@ CQuaternion* CQuaternion::fromRotationBetweenVec3(
   float s = sqrt((1 + a) * 2);
   float invs = 1 / s;
 
-  CVec3* c = CVec3::cross(v1, v2);
+  CVec3* c = v1->clone(new CVec3)->cross(v2);
   delete v1, v2;
 
   this->w = s * 0.5f;
@@ -448,32 +412,29 @@ CQuaternion* CQuaternion::fromRotationBetweenVec3(
   this->y = c->y * invs;
   this->z = c->z * invs;
 
+  delete c;
+
   return this->normalize();
 }
 
 CVec3* CQuaternion::multiplyVec3(
+  CVec3* ptr,
   const CVec3* v
 ) const {
-  CVec3* qvec = new CVec3(this->x, this->y, this->z);
+  v->clone(ptr);
 
-  CVec3* uv = CVec3::cross(qvec, v);
-  CVec3* uuv = CVec3::cross(qvec, uv);
+  CVec3* uv = ptr->clone(new CVec3)->cross(v);
+  CVec3* uuv = ptr->clone(new CVec3)->cross(uv);
 
-  delete qvec;
+  uv
+  ->scale(2.0f * this->w)
+  ->add(v)
+  ->add(
+    uuv->scale(2.0f)
+  )
+  ->clone(ptr);
 
-  uv->scale(2.0f * this->w);
-  uuv->scale(2.0f);
+  delete uv, uuv;
 
-  uv->add(v);
-  uv->add(uuv);
-
-  delete uuv;
-
-  return uv;
-}
-CVec3* CQuaternion::multiplyVec3(
-  const CQuaternion* q,
-  const CVec3* v
-) {
-  return q->multiplyVec3(v);
+  return ptr;
 }

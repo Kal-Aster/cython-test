@@ -6,13 +6,19 @@
 class CVec3 {
   public:
     CVec3(
-      float _x, float _y, float _z
+      float _x = 0.0,
+      float _y = 0.0,
+      float _z = 0.0
     ): x(_x), y(_y), z(_z) {}
 
     float x, y, z;
 
-    CVec3* clone() const {
-      return new CVec3(this->x, this->y, this->z);
+    CVec3* clone(CVec3* ptr) const {
+      ptr->x = this->x;
+      ptr->y = this->y;
+      ptr->z = this->z;
+
+      return ptr;
     }
 
     float length() const {
@@ -60,12 +66,6 @@ class CVec3 {
 
       return this;
     }
-    static CVec3* cross(
-      const CVec3* v1,
-      const CVec3* v2
-    ) {
-      return v1->clone()->cross(v2);
-    }
 
     CVec3* scale(
       float s
@@ -85,12 +85,6 @@ class CVec3 {
       this->z += other->z;
 
       return this;
-    }
-    static CVec3* add(
-      const CVec3* v1,
-      const CVec3* v2
-    ) {
-      return v1->clone()->add(v2);
     }
 };
 
